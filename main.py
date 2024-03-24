@@ -22,10 +22,10 @@ def draw_grid(w, rows, surface):
         pygame.draw.line(surface, (255, 255, 255), (0, y), (w, y))
 
 
-def redraw_window(surface):
-    global rows, width, s, snack
+def redraw_window(surface, snake: Snake, snack: Cube):
+    global rows, width
     surface.fill((0, 0, 0))
-    s.draw(surface)
+    snake.draw(surface)
     snack.draw(surface)
     draw_grid(width, rows, surface)
     pygame.display.update()
@@ -58,12 +58,12 @@ def message_box(subject, content):
 
 
 def main():
-    global width, rows, s, snack
+    global width, rows
     width = 500
     rows = 20
     win = pygame.display.set_mode((width, width))
-    s = Snake((255, 0, 0), (10, 10))
-    snack = Cube(random_snack(rows, s), color=(0, 255, 0))
+    snake = Snake((255, 0, 0), (10, 10))
+    snack = Cube(random_snack(rows, snake), color=(0, 255, 0))
     flag = True
 
     clock = pygame.time.Clock()
@@ -71,19 +71,19 @@ def main():
     while flag:
         pygame.time.delay(50)
         clock.tick(10)
-        s.move()
-        if s.body[0].pos == snack.pos:
-            s.addCube()
-            snack = Cube(random_snack(rows, s), color=(0, 255, 0))
+        snake.move()
+        if snake.body[0].pos == snack.pos:
+            snake.addCube()
+            snack = Cube(random_snack(rows, snake), color=(0, 255, 0))
 
-        for x in range(len(s.body)):
-            if s.body[x].pos in list(map(lambda z: z.pos, s.body[x+1:])):
-                print('Score: ', len(s.body))
+        for x in range(len(snake.body)):
+            if snake.body[x].pos in list(map(lambda z: z.pos, snake.body[x+1:])):
+                print('Score: ', len(snake.body))
                 message_box('You Lost!', 'Play again...')
-                s.reset((10, 10))
+                snake.reset((10, 10))
                 break
 
-        redraw_window(win)
+        redraw_window(win, snake, snack)
 
 
 main()

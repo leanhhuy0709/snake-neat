@@ -3,7 +3,7 @@ import pygame
 
 
 class Snake(object):
-    body = []
+    body: list[Cube] = []
     turns = {}
 
     def __init__(self, color, pos):
