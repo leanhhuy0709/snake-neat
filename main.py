@@ -71,7 +71,7 @@ def main():
     while flag:
         pygame.time.delay(50)
         clock.tick(10)
-        snake.move()
+        snake.move_with_direction(2)
         if snake.body[0].pos == snack.pos:
             snake.addCube()
             snack = Cube(random_snack(rows, snake), color=(0, 255, 0))
