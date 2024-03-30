@@ -277,6 +277,12 @@ def run(config_file):
     plt.plot(data)
     plt.xlabel('Generation')
     plt.ylabel('Best Fitness')
+
+    # q: can you save plot image to png file to folder plots?
+    # a: yes, you can save plot image to png file to folder plots
+    plot_file = 'plots/' + winner_file.split('/')[-1][:-4] + '.png'
+    plt.savefig(plot_file)
+
     plt.show()
 
 
