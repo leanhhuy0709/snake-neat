@@ -18,7 +18,7 @@ print(data_file)
 
 # load data from file
 data = []
-with open('output.txt', 'r') as f:
+with open(data_file, 'r') as f:
     for line in f:
         data.append(float(line))
 

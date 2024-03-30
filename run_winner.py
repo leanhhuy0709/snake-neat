@@ -26,7 +26,7 @@ print(winner_path)
 
 with open(winner_path, 'rb') as f:
     winner = pickle.load(f)
-    eval_genomes([(0, winner)], neatConfig, True)
+    eval_genomes([(0, winner)], neatConfig, True, True)
     print('\nBest genome:')
     print(f"Key: {winner.key}")
     print(f"Fitness: {winner.fitness}")
