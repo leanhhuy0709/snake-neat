@@ -2,7 +2,7 @@ class Args:
     # run_neat.py
     config_neat_filename = 'config_neat.txt'
     number_runs = 1000000
-    generation_interval = 1000  # -1 if not used
+    generation_interval = 10000  # -1 if not used
     checkpoint_prefix = 'checkpoints/neat-checkpoint-'
     is_retrain = False
     retrain_checkpoint = 'checkpoints/neat-checkpoint-1'  # use if is_retrain is True

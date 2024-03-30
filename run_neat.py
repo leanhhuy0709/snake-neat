@@ -194,8 +194,15 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
             pygame.display.update()
 
     best_fitness_all_gens = max(best_fitness_all_gens, best_fitness)
+
+    # calculate num char of number_runs
+    num_char = math.floor(math.log10(Args.number_runs)) + 1
+    gen_str = str(gen).zfill(num_char)
+    best_fitness_str = str(best_fitness).zfill(4)
+    best_fitness_all_gens_str = str(best_fitness_all_gens).zfill(4)
+
     print(
-        f"Generation:{gen}-------Fitness:{best_fitness}-------BestFitness:{best_fitness_all_gens}-------", end='\r')
+        f"Generation:{gen_str}-------Fitness:{best_fitness_str}-------BestFitness:{best_fitness_all_gens_str}-------", end='\r')
 
     data.append(best_fitness)
     gen += 1
