@@ -8,9 +8,12 @@ import tkinter as tk
 from tkinter import messagebox
 from classes.cube import Cube
 from classes.snake import Snake, Color
+import matplotlib.pyplot as plt
 
 import neat
 import os
+
+from config import Args
 
 
 def draw_grid(w, rows, surface):
@@ -74,9 +77,6 @@ def message_box(subject, content):
 gen = 0
 best_fitness_all_gens = 0
 data = []
-number_runs = 100000
-LOAD_WINNER = False
-IS_LOAD_DATA = False
 
 
 def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
@@ -209,6 +209,17 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
     gen += 1
 
 
+def get_next_filename(prefix):
+    directory = os.path.dirname(prefix)
+    base_prefix = os.path.basename(prefix)
+    highest_num = 0
+    for filename in os.listdir(directory):
+        if filename.startswith(base_prefix) and filename.endswith('.pkl'):
+            num = int(filename[len(base_prefix):-4])
+            highest_num = max(highest_num, num)
+    return prefix + str(highest_num + 1) + '.pkl'
+
+
 def run(config_file):
     """
     runs the NEAT algorithm to train a neural network to play snake.
@@ -222,45 +233,46 @@ def run(config_file):
                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                 config_file)
 
-    if LOAD_WINNER:
-        # load winner from winner.pkl
-        with open('winner.pkl', 'rb') as f:
-            winner = pickle.load(f)
-            eval_genomes([(0, winner)], config, True)
-            print('\nBest genome:')
-            print(f"Key: {winner.key}")
-            print(f"Fitness: {winner.fitness}")
-        return
-
     # Create the population, which is the top-level object for a NEAT run.
-    p = neat.Population(config)
-    # p = neat.Checkpointer.restore_checkpoint(
-    #     'checkpoints/neat-checkpoint-3126394')
-    # p.load_checkpoint('checkpoints/neat-checkpoint-5000')
+    if Args.is_retrain:
+        p = neat.Checkpointer.restore_checkpoint(Args.retrain_checkpoint)
+    else:
+        p = neat.Population(config)
 
-    # Add a stdout reporter to show progress in the terminal.
-    # p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
     checkpoint = neat.Checkpointer(
-        10000, filename_prefix='checkpoints/neat-checkpoint-')
+        Args.generation_interval, filename_prefix=Args.checkpoint_prefix)
     p.add_reporter(checkpoint)
 
-    # Run for up to 50 generations.
-    winner = p.run(eval_genomes, number_runs)
+    winner = p.run(eval_genomes, Args.number_runs)
 
-    # save winner to file
-    # neat.Checkpointer.save_checkpoint(
-
-    winner: neat.DefaultGenome
+    # Save checkpoint when a winner is found
+    checkpoint.save_checkpoint(config, p.population, p.species, p.generation)
 
     # show final stats
-    # print('\nBest genome:\n{!s}'.format(winner))
     print('\nBest genome:')
     print(f"Key: {winner.key}")
     print(f"Fitness: {winner.fitness}")
-    with open('winner.pkl', 'wb') as f:
+
+    winner_file = get_next_filename(Args.winner_prefix)
+
+    with open(winner_file, 'wb') as f:
         pickle.dump(winner, f)
+
+    # data/winner-x.txt
+    data_folder = Args.data_prefix.split('/')[0]
+    data_of_winner_file = data_folder + '/' + winner_file.split('/')[-1]
+    data_of_winner_file = data_of_winner_file[:-4] + '.txt'
+
+    # save data to data_of_winner_file
+    with open(data_of_winner_file, 'w') as f:
+        for item in data:
+            f.write("%s\n" % item)
+
+    # draw plot with data
+    plt.plot(data)
+    plt.xlabel('Generation')
+    plt.ylabel('Best Fitness')
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -268,24 +280,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config.txt')
+    config_path = os.path.join(local_dir, Args.config_neat_filename)
     run(config_path)
-
-    if IS_LOAD_DATA:
-        # load data from output.txt
-        data = []
-        with open('output.txt', 'r') as f:
-            for line in f:
-                data.append(float(line))
-
-    # draw plot with data
-    import matplotlib.pyplot as plt
-    plt.plot(data)
-    plt.xlabel('Generation')
-    plt.ylabel('Best Fitness')
-    plt.show()
-
-    # save data to output.txt
-    with open('output.txt', 'w') as f:
-        for item in data:
-            f.write("%s\n" % item)
