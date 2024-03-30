@@ -8,6 +8,7 @@ class Args:
     retrain_checkpoint = 'checkpoints/neat-checkpoint-1'  # use if is_retrain is True
     winner_prefix = 'winners/winner-'
     data_prefix = 'data/winner-'
+    show_training = False
 
     # Note: if '' is used, the path will be the newest file in the directory
     # run_winner.py

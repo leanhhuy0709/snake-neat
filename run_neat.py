@@ -79,11 +79,11 @@ best_fitness_all_gens = 0
 data = []
 
 
-def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
+def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
     global width, rows, gen, best_fitness_all_gens
     width = 500
     rows = 20
-    if show:
+    if Args.show_training:
         win = pygame.display.set_mode((width, width))
     else:
         win = None
@@ -113,7 +113,7 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
     while flag:
         lives -= 1
         # pygame.time.delay(50)
-        if show:
+        if Args.show_training:
             clock.tick(10)
 
         if len(snakes) == 0:
@@ -168,14 +168,6 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
                     len(snake.body)), color=(0, 255, 0))
                 ge.fitness += 10
 
-            # if head.pos[0] < 0 or head.pos[0] > 19 or head.pos[1] < 0 or head.pos[1] > 19:
-            #     ge.fitness -= 5
-            #     snakes.pop(i)
-            #     snacks.pop(i)
-            #     ges.pop(i)
-            #     best_fitness = max(best_fitness, ge.fitness)
-            #     continue
-
             if lives + len(snake.body) * 50 <= 0:
                 snakes.pop(i)
                 snacks.pop(i)
@@ -187,13 +179,13 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
                 if x == 0:
                     continue
                 if snake.body[x].pos == head.pos:
-                    ge.fitness -= 5
+                    # ge.fitness -= 5
                     snakes.pop(i)
                     snacks.pop(i)
                     ges.pop(i)
                     best_fitness = max(best_fitness, ge.fitness)
                     break
-        if show:
+        if Args.show_training:
             redraw_window(win, snake, snack)
             for i in range(len(snakes)):
                 snake = snakes[i]
