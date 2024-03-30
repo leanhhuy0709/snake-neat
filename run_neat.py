@@ -1,6 +1,7 @@
 # Snake Tutorial Python
 
 import math
+import pickle
 import random
 import pygame
 import tkinter as tk
@@ -51,6 +52,14 @@ def random_snack(rows, item):
     return (x, y)
 
 
+def random_snack_2(index=0):
+
+    raw_pos = [(4, 0), (7, 1), (19, 12), (14, 12), (10, 6), (19, 13), (9, 9), (16, 10), (7, 2), (0, 16), (9, 15), (9, 12), (19, 14), (13, 19), (7, 2), (10, 6), (15, 10), (6, 12), (1, 19), (9, 19), (1, 5), (2, 3), (17, 4), (17, 7), (18, 0), (2, 19), (18, 2), (17, 19), (2, 4), (7, 11), (18, 13), (4, 3), (3, 10), (15, 13), (14, 7), (13, 5), (4, 10), (0, 8), (8, 7), (5, 0), (7, 3), (15, 17), (3, 7), (16, 4), (10, 9), (6, 12), (10, 1), (6, 3), (13, 5), (16, 18),
+               (5, 19), (7, 15), (14, 9), (5, 2), (2, 4), (0, 6), (9, 14), (18, 4), (0, 19), (5, 1), (13, 10), (6, 6), (18, 14), (4, 14), (12, 15), (13, 16), (2, 1), (10, 3), (18, 3), (15, 14), (12, 8), (12, 10), (5, 9), (16, 19), (5, 15), (7, 9), (11, 16), (7, 4), (7, 18), (14, 18), (14, 17), (0, 1), (4, 1), (12, 16), (11, 0), (4, 0), (3, 4), (10, 1), (15, 19), (17, 10), (16, 16), (14, 18), (15, 15), (19, 18), (3, 2), (6, 0), (19, 18), (17, 17), (0, 5), (0, 1), (7, 4), (5, 6)]
+
+    return raw_pos[index % len(raw_pos)]
+
+
 def message_box(subject, content):
     root = tk.Tk()
     root.attributes("-topmost", True)
@@ -64,14 +73,20 @@ def message_box(subject, content):
 
 gen = 0
 best_fitness_all_gens = 0
-show = False
+data = []
+number_runs = 100000
+LOAD_WINNER = False
+IS_LOAD_DATA = False
 
 
-def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
-    global width, rows, gen, best_fitness_all_gens, show
+def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config, show=False):
+    global width, rows, gen, best_fitness_all_gens
     width = 500
     rows = 20
-    win = pygame.display.set_mode((width, width))
+    if show:
+        win = pygame.display.set_mode((width, width))
+    else:
+        win = None
     snakes: list[Snake] = []
     snacks: list[Cube] = []
     ges: list[neat.DefaultGenome] = []
@@ -85,7 +100,7 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
         snakes.append(snake)
         snake.addCube()
         snake.addCube()
-        snack = Cube(random_snack(rows, snake), color=(0, 255, 0))
+        snack = Cube(random_snack_2(len(snake.body)), color=(0, 255, 0))
         snacks.append(snack)
         ges.append(genome)
         net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -93,7 +108,7 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
         genome.fitness = 0
 
     clock = pygame.time.Clock()
-    lives = 2000
+    lives = 100
 
     while flag:
         lives -= 1
@@ -123,9 +138,23 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
                     r = 0
                 if head.pos[0] - 1 == pos[0] and head.pos[1] == pos[1]:
                     l = 0
+            l1 = 0
+            r1 = 0
+            u1 = 0
+            d1 = 0
+
+            if snack.pos[0] - snake.body[0].pos[0] > 0:
+                r1 = 1
+            elif snack.pos[0] - snake.body[0].pos[0] < 0:
+                l1 = 1
+
+            if snack.pos[1] - snake.body[0].pos[1] > 0:
+                d1 = 1
+            elif snack.pos[1] - snake.body[0].pos[1] < 0:
+                u1 = 1
 
             output = nets[i].activate(
-                (snack.pos[0] - snake.body[0].pos[0], snack.pos[1] - snake.body[0].pos[1], l, r, u, d))
+                (l1, u1, r1, d1, l, u, r, d))
 
             max_value = max(output)
             max_indexes = [i for i, j in enumerate(output) if j == max_value]
@@ -135,7 +164,8 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
             snake.move_with_direction(max_index)
             if snake.body[0].pos == snack.pos:
                 snake.addCube()
-                snacks[i] = Cube(random_snack(rows, snake), color=(0, 255, 0))
+                snacks[i] = Cube(random_snack_2(
+                    len(snake.body)), color=(0, 255, 0))
                 ge.fitness += 10
 
             # if head.pos[0] < 0 or head.pos[0] > 19 or head.pos[1] < 0 or head.pos[1] > 19:
@@ -146,7 +176,7 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
             #     best_fitness = max(best_fitness, ge.fitness)
             #     continue
 
-            if lives + len(snake.body) * 400 <= 0:
+            if lives + len(snake.body) * 50 <= 0:
                 snakes.pop(i)
                 snacks.pop(i)
                 ges.pop(i)
@@ -175,6 +205,7 @@ def eval_genomes(genomes: list[(int, neat.DefaultGenome)], config):
     print(
         f"Generation:{gen}-------Fitness:{best_fitness}-------BestFitness:{best_fitness_all_gens}-------", end='\r')
 
+    data.append(best_fitness)
     gen += 1
 
 
@@ -184,33 +215,52 @@ def run(config_file):
     :param config_file: location of config file
     :return: None
     """
+
     global gen
     gen = 0
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                 config_file)
 
+    if LOAD_WINNER:
+        # load winner from winner.pkl
+        with open('winner.pkl', 'rb') as f:
+            winner = pickle.load(f)
+            eval_genomes([(0, winner)], config, True)
+            print('\nBest genome:')
+            print(f"Key: {winner.key}")
+            print(f"Fitness: {winner.fitness}")
+        return
+
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
     # p = neat.Checkpointer.restore_checkpoint(
-    #     'checkpoints/neat-checkpoint-18717')
+    #     'checkpoints/neat-checkpoint-3126394')
     # p.load_checkpoint('checkpoints/neat-checkpoint-5000')
 
     # Add a stdout reporter to show progress in the terminal.
     # p.add_reporter(neat.StdOutReporter(True))
-    # stats = neat.StatisticsReporter()
-    # p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(
-        100000, filename_prefix='checkpoints/neat-checkpoint-'))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    checkpoint = neat.Checkpointer(
+        10000, filename_prefix='checkpoints/neat-checkpoint-')
+    p.add_reporter(checkpoint)
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes, 1000000)
+    winner = p.run(eval_genomes, number_runs)
+
+    # save winner to file
+    # neat.Checkpointer.save_checkpoint(
+
+    winner: neat.DefaultGenome
 
     # show final stats
     # print('\nBest genome:\n{!s}'.format(winner))
     print('\nBest genome:')
     print(f"Key: {winner.key}")
     print(f"Fitness: {winner.fitness}")
+    with open('winner.pkl', 'wb') as f:
+        pickle.dump(winner, f)
 
 
 if __name__ == '__main__':
@@ -220,3 +270,22 @@ if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config.txt')
     run(config_path)
+
+    if IS_LOAD_DATA:
+        # load data from output.txt
+        data = []
+        with open('output.txt', 'r') as f:
+            for line in f:
+                data.append(float(line))
+
+    # draw plot with data
+    import matplotlib.pyplot as plt
+    plt.plot(data)
+    plt.xlabel('Generation')
+    plt.ylabel('Best Fitness')
+    plt.show()
+
+    # save data to output.txt
+    with open('output.txt', 'w') as f:
+        for item in data:
+            f.write("%s\n" % item)
