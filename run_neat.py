@@ -239,9 +239,10 @@ def run(config_file):
     else:
         p = neat.Population(config)
 
-    checkpoint = neat.Checkpointer(
-        Args.generation_interval, filename_prefix=Args.checkpoint_prefix)
-    p.add_reporter(checkpoint)
+    if Args.generation_interval != -1:
+        checkpoint = neat.Checkpointer(
+            Args.generation_interval, filename_prefix=Args.checkpoint_prefix)
+        p.add_reporter(checkpoint)
 
     winner = p.run(eval_genomes, Args.number_runs)
 
