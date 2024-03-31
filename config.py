@@ -14,4 +14,4 @@ class Args:
     # run_winner.py
     winner_path = ''  # 'winners/winner-2.pkl'
     # run_plot.py
-    data_of_winner_path = ''  # 'data/winner-2.txt'
+    data_of_winner_path = 'data/winner-2.txt'  # 'data/winner-2.txt'
